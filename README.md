@@ -1,7 +1,7 @@
 # Event Grid
 This module creates an Azure Event Grid System Topic.
 
-You can optionally configure managed identities, diagnostics and resource lock.
+You can optionally configure event subscriptions, managed identities, diagnostics and resource lock.
 
 ## Usage
 
@@ -35,6 +35,38 @@ module eventHub 'eventgrid.bicep' = {
     resourcelock: 'CanNotDelete'
     enableDiagnostics: true    
     diagnosticLogAnalyticsWorkspaceId: 'myLogAnalyticsWorkspaceResourceId'
+  }
+}
+```
+
+### Example 3 - Event Grid with event subscription
+```bicep
+param deploymentName string = 'eg${utcNow()}'
+param location string = resourceGroup().location
+
+module eventHub 'eventgrid.bicep' = {
+  name: deploymentName
+  params: {
+    eventGridName: 'myEventGridName'
+    location: location
+    source: 'myStorageAccountResourceId'
+    eventSubscriptions: [
+      {
+        name: 'myEventSubscriptionName'
+        endpointType: 'StorageQueue'
+        properties: {
+          queueMessageTimeToLiveInSeconds: 300
+          queueName: 'myStorageQueueName'
+          resourceId: 'myStorageAccountResourceId'
+        }
+        resourceId: 'myStorageAccountResourceId'
+        eventSchema: 'EventGridSchema'
+        filterEventTypes: [
+          'Microsoft.Storage.BlobCreated'
+          'Microsoft.Storage.BlobDeleted'
+        ]
+      }
+    ]
   }
 }
 ```
